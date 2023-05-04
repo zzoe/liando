@@ -1,0 +1,78 @@
+import {Button, HorizontalBox, LineEdit, TextEdit, VerticalBox } from "std-widgets.slint";
+
+export component App inherits Window {
+    out property<string> start_date <=> start_date_edit.text;
+    out property<string> end_date <=> end_date_edit.text;
+    out property<string> authorization <=> authorization_edit.text;
+    in-out property <bool> execute_enabled <=> button.enabled;
+    callback execute_clicked;
+    in property<string> tasks <=> tasks_text.text;
+
+    preferred-width: 800px;
+    preferred-height: 600px;
+
+    VerticalBox {
+        HorizontalBox {
+            Text {
+                text: "开始日期:";
+                vertical-alignment: center;
+            }
+            start_date_edit := LineEdit {
+                placeholder-text: "请输入开始日期";
+            }
+            Text {
+                text: "结束日期:";
+                vertical-alignment: center;
+            }
+            end_date_edit := LineEdit {
+                placeholder-text: "请输入结束日期";
+            }
+        }
+
+        HorizontalBox {
+            Text {
+                text: "考勤每日统计表:";
+                vertical-alignment: center;
+            }
+            LineEdit {
+                placeholder-text: "在考勤每日统计表文件上，Shift+右键，复制文件地址";
+            }
+        }
+
+        HorizontalBox {
+            Text {
+                text: "考勤原始记录表:";
+                vertical-alignment: center;
+            }
+            LineEdit {
+                placeholder-text: "在考勤原始记录表文件上，Shift+右键，复制文件地址";
+            }
+        }
+
+        HorizontalBox {
+            Text {
+                text: "Authorization:";
+                vertical-alignment: center;
+            }
+            authorization_edit := LineEdit {
+                placeholder-text: "从浏览器F12-网络中找到任意请求标头的Authorization数据";
+            }
+        }
+
+        HorizontalBox {
+            button := Button {
+                text: "生成";
+                clicked => {
+                    root.execute_enabled = false;
+                    root.execute_clicked();
+                }
+            }
+        }
+
+        VerticalBox {
+            tasks_text := TextEdit{
+                read-only: true;
+            }
+        }
+    }
+}
