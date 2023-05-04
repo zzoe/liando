@@ -27,22 +27,22 @@ async fn query_tasks(ui_weak: slint::Weak<App>) {
                 search_type: 4,
                 start_time: ui.get_start_date().to_string(),
                 end_time: ui.get_end_date().to_string(),
+                authorization: ui.get_authorization().to_string(),
             };
-            s.send_blocking(ui.get_authorization()).unwrap();
+            s.send_blocking(req).unwrap();
         })
         .unwrap()
     })
     .await;
 
-    let authorization = r.recv().await.map(|s| s.to_string()).unwrap_or_default();
-    println!("{authorization}");
+    let task_req = r.recv().await.unwrap_or_default();
 
     //通过surf client 发送http请求
 
     let task_res = surf::get("http://tmp.liando.cn/api/inner/business/tsTask/list")
-        .query(&req)
+        .query(&task_req)
         .unwrap()
-        .header("Authorization", authorization)
+        .header("Authorization", task_req.authorization)
         .recv_string()
         .await;
 
@@ -57,7 +57,7 @@ async fn query_tasks(ui_weak: slint::Weak<App>) {
     .unwrap();
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Deserialize, Serialize)]
 struct TaskReq {
     #[serde(rename = "pageNum")]
     page_num: u32,
