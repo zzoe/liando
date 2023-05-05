@@ -1,11 +1,26 @@
 import {Button, HorizontalBox, LineEdit, TextEdit, VerticalBox } from "std-widgets.slint";
 
 export component App inherits Window {
-    out property<string> start_date <=> start_date_edit.text;
-    out property<string> end_date <=> end_date_edit.text;
+    //时间
+    in-out property<string> start_date <=> start_date_edit.text;
+    in-out property<string> end_date <=> end_date_edit.text;
+
+    //按钮统一控制
+    in-out property <bool> button_enabled: true;
+
+    //文件选择
+    in-out property<string> statistics_file <=> statistics_file_edit.text;
+    callback statistics_select_clicked;
+    in-out property<string> record_file <=> record_file_edit.text;
+    callback record_select_clicked;
+
+    //授权信息
     out property<string> authorization <=> authorization_edit.text;
-    in-out property <bool> execute_enabled <=> button.enabled;
+
+    //生成按钮
     callback execute_clicked;
+
+    //结果
     in property<string> tasks <=> tasks_text.text;
 
     preferred-width: 800px;
@@ -34,8 +49,16 @@ export component App inherits Window {
                 text: "考勤每日统计表:";
                 vertical-alignment: center;
             }
-            LineEdit {
-                placeholder-text: "在考勤每日统计表文件上，Shift+右键，复制文件地址";
+            statistics_file_edit := LineEdit {
+                placeholder-text: "请输入考勤每日统计表文件地址";
+            }
+            Button {
+                text: "📂";
+                enabled: root.button_enabled;
+                clicked => {
+                    root.button_enabled = false;
+                    root.statistics_select_clicked();
+                }
             }
         }
 
@@ -44,8 +67,16 @@ export component App inherits Window {
                 text: "考勤原始记录表:";
                 vertical-alignment: center;
             }
-            LineEdit {
-                placeholder-text: "在考勤原始记录表文件上，Shift+右键，复制文件地址";
+            record_file_edit := LineEdit {
+                placeholder-text: "请输入考勤原始记录表文件地址";
+            }
+            Button {
+                text: "📂";
+                enabled: root.button_enabled;
+                clicked => {
+                    root.button_enabled = false;
+                    root.record_select_clicked();
+                }
             }
         }
 
@@ -60,10 +91,11 @@ export component App inherits Window {
         }
 
         HorizontalBox {
-            button := Button {
+            Button {
                 text: "生成";
+                enabled: root.button_enabled;
                 clicked => {
-                    root.execute_enabled = false;
+                    root.button_enabled = false;
                     root.execute_clicked();
                 }
             }

@@ -8,9 +8,12 @@ edition = "2021"
 [dependencies]
 async-channel = "*"
 async-global-executor = "*"
+rfd = "*"
 serde = "*"
 slint = "*"
 surf = { version = "*", default-features = false, features = ["hyper-client"] }
+time = { version = "*", features = ["local-offset"] }
+xlsx_group_write = "*"
 
 [build-dependencies]
 slint-build = "*"

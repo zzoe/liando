@@ -1,81 +1,100 @@
+use rfd::AsyncFileDialog;
 use serde::{Deserialize, Serialize};
 use slint::{PlatformError, SharedString};
+use time::{Duration, OffsetDateTime};
 
 slint::include_modules!();
+
+mod attendance;
+mod meetings;
 
 fn main() -> Result<(), PlatformError> {
     let ui = App::new()?;
 
-    let ui_weak = ui.as_weak();
-    ui.on_execute_clicked(move || {
-        let ui_weak_copy = ui_weak.clone();
-        async_global_executor::spawn(query_tasks(ui_weak_copy)).detach();
-    });
+    init_date(&ui);
+    on_statistics_file_select(&ui);
+    on_record_file_select(&ui);
+    on_execute_clicked(&ui);
 
     ui.run()
 }
 
-async fn query_tasks(ui_weak: slint::Weak<App>) {
-    let (s, r) = async_channel::bounded(1);
-    let ui_weak_copy = ui_weak.clone();
-    async_global_executor::spawn_blocking(|| {
-        slint::invoke_from_event_loop(move || {
-            let ui = ui_weak_copy.unwrap();
-            let req = TaskReq {
-                page_num: 1,
-                page_size: 2000,
-                search_type: 4,
-                start_time: ui.get_start_date().to_string(),
-                end_time: ui.get_end_date().to_string(),
-                authorization: ui.get_authorization().to_string(),
-            };
-            s.send_blocking(req).unwrap();
+fn init_date(ui: &App) {
+    let today = OffsetDateTime::now_local().map(|d| d.date());
+    let last_friday = today.map(|d| {
+        d.saturating_sub(Duration::days(
+            d.weekday().number_days_from_sunday() as i64 + 2_i64,
+        ))
+    });
+    let last_monday = last_friday
+        .map(|d| d.saturating_sub(Duration::days(4)).to_string().into())
+        .unwrap_or_default();
+    let last_friday = last_friday
+        .map(|d| SharedString::from(d.to_string()))
+        .unwrap_or_default();
+
+    ui.set_start_date(last_monday);
+    ui.set_end_date(last_friday);
+}
+
+fn on_statistics_file_select(ui: &App) {
+    let ui_weak = ui.as_weak();
+    ui.on_statistics_select_clicked(move || {
+        let ui_weak_copy = ui_weak.clone();
+        async_global_executor::spawn(select_file(
+            ui_weak_copy,
+            FileClassification::DailyStatistics,
+        ))
+        .detach();
+    });
+}
+
+fn on_record_file_select(ui: &App) {
+    let ui_weak = ui.as_weak();
+    ui.on_record_select_clicked(move || {
+        let ui_weak_copy = ui_weak.clone();
+        async_global_executor::spawn(select_file(
+            ui_weak_copy,
+            FileClassification::OriginalRecord,
+        ))
+        .detach();
+    });
+}
+
+fn on_execute_clicked(ui: &App) {
+    let ui_weak = ui.as_weak();
+    ui.on_execute_clicked(move || {
+        let ui_weak_copy = ui_weak.clone();
+        async_global_executor::spawn(async {
+            meetings::query_tasks(ui_weak_copy).await;
         })
-        .unwrap()
-    })
-    .await;
+        .detach();
+    });
+}
 
-    let task_req = r.recv().await.unwrap_or_default();
+enum FileClassification {
+    DailyStatistics,
+    OriginalRecord,
+}
 
-    //通过surf client 发送http请求
-
-    let task_res = surf::get("http://tmp.liando.cn/api/inner/business/tsTask/list")
-        .query(&task_req)
-        .unwrap()
-        .header("Authorization", task_req.authorization)
-        .recv_string()
+async fn select_file(ui_weak: slint::Weak<App>, file_classification: FileClassification) {
+    let opt_file = AsyncFileDialog::new()
+        .add_filter("excel", &["xls", "xlsx"])
+        .set_title("请选择考勤Excel")
+        .pick_file()
         .await;
 
-    slint::invoke_from_event_loop(move || {
-        let ui = ui_weak.unwrap();
+    ui_weak
+        .upgrade_in_event_loop(move |ui| {
+            if let Some(file) = opt_file {
+                let file_path = SharedString::from(file.path().to_str().unwrap_or_default());
+                match file_classification {
+                    FileClassification::DailyStatistics => ui.set_statistics_file(file_path),
+                    FileClassification::OriginalRecord => ui.set_record_file(file_path),
+                }
+            }
 
-        if let Ok(tasks) = task_res {
-            ui.set_tasks(SharedString::from(tasks));
-        }
-        ui.set_execute_enabled(true);
-    })
-    .unwrap();
+            ui.set_button_enabled(true);
+        })
+        .unwrap();
 }
-
-#[derive(Default, Deserialize, Serialize)]
-struct TaskReq {
-    #[serde(rename = "pageNum")]
-    page_num: u32,
-    #[serde(rename = "pageSize")]
-    page_size: u32,
-    #[serde(rename = "searchType")]
-    search_type: u32,
-    #[serde(rename = "startTime")]
-    start_time: String,
-    #[serde(rename = "endTime")]
-    end_time: String,
-    #[serde(skip)]
-    authorization: String,
-}
-
-struct Response<T> {
-    code: String,
-    data: T,
-}
-
-struct TaskRes {}
