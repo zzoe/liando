@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use rfd::AsyncFileDialog;
 use slint::{PlatformError, SharedString};
 use time::{Duration, OffsetDateTime};
