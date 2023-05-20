@@ -1,5 +1,4 @@
 use rfd::AsyncFileDialog;
-use serde::{Deserialize, Serialize};
 use slint::{PlatformError, SharedString};
 use time::{Duration, OffsetDateTime};
 
@@ -66,7 +65,8 @@ fn on_execute_clicked(ui: &App) {
     ui.on_execute_clicked(move || {
         let ui_weak_copy = ui_weak.clone();
         async_global_executor::spawn(async {
-            meetings::query_tasks(ui_weak_copy).await;
+            attendance::execute_handle(ui_weak_copy).await;
+            // meetings::query_tasks(ui_weak_copy).await;
         })
         .detach();
     });

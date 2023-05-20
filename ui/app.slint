@@ -1,6 +1,9 @@
-import {Button, HorizontalBox, LineEdit, TextEdit, VerticalBox } from "std-widgets.slint";
+import {Button, HorizontalBox, LineEdit, StandardButton, TextEdit, VerticalBox } from "std-widgets.slint";
 
 export component App inherits Window {
+    in property<string> error_text;
+    callback alert_error;
+    alert_error => { error_popup.show(); }
     //时间
     in-out property<string> start_date <=> start_date_edit.text;
     in-out property<string> end_date <=> end_date_edit.text;
@@ -25,6 +28,27 @@ export component App inherits Window {
 
     preferred-width: 800px;
     preferred-height: 600px;
+
+    error_popup := PopupWindow {
+        // width: min(error_popup_layout.preferred-width, root.width - 80px);
+        width: root.width;
+        height: 20px;
+
+        Rectangle {
+            background: root.background;
+            border-color: error_popup_text.color;
+            border-width: 2px;
+        }
+
+        error_popup_layout := Dialog {
+            height:100%; width: 100%;
+            error_popup_text := Text {
+                color: red;
+                text: { root.error_text };
+                // wrap: word-wrap;
+            }
+        }
+    }
 
     VerticalBox {
         HorizontalBox {
@@ -81,6 +105,7 @@ export component App inherits Window {
         }
 
         HorizontalBox {
+            visible: false;
             Text {
                 text: "Authorization:";
                 vertical-alignment: center;
@@ -103,6 +128,7 @@ export component App inherits Window {
 
         VerticalBox {
             tasks_text := TextEdit{
+                visible: false;
                 read-only: true;
             }
         }
