@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use rfd::AsyncFileDialog;
-use serde::{Deserialize, Serialize};
 use slint::SharedString;
 use time::{macros::format_description, Date, Duration};
 use umya_spreadsheet::helper::coordinate::{coordinate_from_index, string_from_column_index};
@@ -16,21 +15,21 @@ pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
     ui_weak_copy
         .upgrade_in_event_loop(move |ui| {
             let (start_date, end_date) = (ui.get_start_date(), ui.get_end_date());
-            let mut req = ReportReq {
+            let mut user_input = UserInput {
                 start_date: start_date.to_string(),
                 end_date: end_date.to_string(),
                 statistics_file: ui.get_statistics_file().to_string(),
                 record_file: ui.get_record_file().to_string(),
             };
 
-            let (start_date_check, end_date_check) = req.check_date();
+            let (start_date_check, end_date_check) = user_input.check_date();
             if start_date_check && end_date_check {
                 if start_date > end_date {
                     ui.set_start_date(end_date);
                     ui.set_end_date(start_date);
-                    std::mem::swap(&mut req.start_date, &mut req.end_date);
+                    std::mem::swap(&mut user_input.start_date, &mut user_input.end_date);
                 }
-                s.send_blocking(Some(req)).unwrap();
+                s.send_blocking(Some(user_input)).unwrap();
             } else {
                 let mut text = SharedString::from("输入有误，请检查!");
                 if !start_date_check {
@@ -47,8 +46,8 @@ pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
         })
         .unwrap();
 
-    if let Some(report_req) = r.recv().await.unwrap_or_default() {
-        if let Err(e) = generate_report(report_req).await {
+    if let Some(user_input) = r.recv().await.unwrap_or_default() {
+        if let Err(e) = generate_report(user_input).await {
             ui_weak_copy
                 .upgrade_in_event_loop(move |ui| {
                     ui.set_error_text(e.to_string().into());
@@ -65,15 +64,14 @@ pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
         .unwrap();
 }
 
-#[derive(Default, Deserialize, Serialize)]
-struct ReportReq {
+struct UserInput {
     start_date: String,
     end_date: String,
     statistics_file: String,
     record_file: String,
 }
 
-impl ReportReq {
+impl UserInput {
     fn check_date(&self) -> (bool, bool) {
         let format = format_description!("[year]-[month]-[day]");
         let start_date = Date::parse(&self.start_date, &format);
@@ -93,10 +91,10 @@ impl ReportReq {
     }
 }
 
-async fn generate_report(req: ReportReq) -> anyhow::Result<()> {
+async fn generate_report(user_input: UserInput) -> anyhow::Result<()> {
     let mut dates = HashMap::new();
-    let mut loop_date = req.get_start_date();
-    let end_date = req.get_end_date();
+    let mut loop_date = user_input.get_start_date();
+    let end_date = user_input.get_end_date();
     let format = format_description!("[year repr:last_two]-[month]-[day]");
     while loop_date <= end_date {
         dates.insert(loop_date.format(&format).unwrap(), loop_date);
@@ -104,9 +102,14 @@ async fn generate_report(req: ReportReq) -> anyhow::Result<()> {
     }
 
     //从每日统计文件取每人每天上下班的考勤状态(G,I)和工作时长（Q）
-    let mut all_attendance = get_everyone_statistics(Path::new(&req.statistics_file), &dates)?;
+    let mut all_attendance =
+        get_everyone_statistics(Path::new(&user_input.statistics_file), &dates)?;
     //从原始记录文件取每人每天上下班的虚拟打卡情况(N)
-    get_everyone_abnormal_reason(Path::new(&req.record_file), &dates, &mut all_attendance)?;
+    get_everyone_abnormal_reason(
+        Path::new(&user_input.record_file),
+        &dates,
+        &mut all_attendance,
+    )?;
     //输出文件
     save_res(dates, all_attendance).await?;
 
@@ -257,9 +260,13 @@ async fn save_res(
                         .set_value_string(
                             format!(
                                 "{}\n{}\n{}",
-                                attendance.enter_info,
-                                attendance.leave_info,
-                                attendance.abnormal_reason
+                                sum_up(&attendance.enter_info)
+                                    .replace("缺卡", "缺早卡")
+                                    .replace("补卡", "补早卡"),
+                                sum_up(&attendance.leave_info)
+                                    .replace("缺卡", "缺晚卡")
+                                    .replace("补卡", "补晚卡"),
+                                sum_up(&attendance.abnormal_reason)
                             )
                             .trim(),
                         );
@@ -287,4 +294,13 @@ async fn save_res(
     }
 
     Ok(())
+}
+
+fn sum_up(reason: &str) -> String {
+    for i in ["缺卡", "补卡", "迟到", "早退", "虚拟"] {
+        if reason.contains(i) {
+            return i.to_string();
+        }
+    }
+    String::new()
 }

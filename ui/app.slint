@@ -17,22 +17,13 @@ export component App inherits Window {
     in-out property<string> record_file <=> record_file_edit.text;
     callback record_select_clicked;
 
-    //授权信息
-    out property<string> authorization <=> authorization_edit.text;
-
     //生成按钮
     callback execute_clicked;
 
-    //结果
-    in property<string> tasks <=> tasks_text.text;
-
     preferred-width: 800px;
-    preferred-height: 600px;
 
     error_popup := PopupWindow {
-        // width: min(error_popup_layout.preferred-width, root.width - 80px);
         width: root.width;
-        height: 20px;
 
         Rectangle {
             background: root.background;
@@ -45,7 +36,7 @@ export component App inherits Window {
             error_popup_text := Text {
                 color: red;
                 text: { root.error_text };
-                // wrap: word-wrap;
+                wrap: word-wrap;
             }
         }
     }
@@ -105,17 +96,6 @@ export component App inherits Window {
         }
 
         HorizontalBox {
-            visible: false;
-            Text {
-                text: "Authorization:";
-                vertical-alignment: center;
-            }
-            authorization_edit := LineEdit {
-                placeholder-text: "从浏览器F12-网络中找到任意请求标头的Authorization数据";
-            }
-        }
-
-        HorizontalBox {
             Button {
                 text: "生成";
                 enabled: root.button_enabled;
@@ -123,13 +103,6 @@ export component App inherits Window {
                     root.button_enabled = false;
                     root.execute_clicked();
                 }
-            }
-        }
-
-        VerticalBox {
-            tasks_text := TextEdit{
-                visible: false;
-                read-only: true;
             }
         }
     }

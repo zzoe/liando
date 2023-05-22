@@ -5,7 +5,6 @@ use time::{Duration, OffsetDateTime};
 slint::include_modules!();
 
 mod attendance;
-mod meetings;
 
 fn main() -> Result<(), PlatformError> {
     let ui = App::new()?;
@@ -64,11 +63,7 @@ fn on_execute_clicked(ui: &App) {
     let ui_weak = ui.as_weak();
     ui.on_execute_clicked(move || {
         let ui_weak_copy = ui_weak.clone();
-        async_global_executor::spawn(async {
-            attendance::execute_handle(ui_weak_copy).await;
-            // meetings::query_tasks(ui_weak_copy).await;
-        })
-        .detach();
+        async_global_executor::spawn(attendance::execute_handle(ui_weak_copy)).detach();
     });
 }
 
