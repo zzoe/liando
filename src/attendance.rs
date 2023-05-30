@@ -127,7 +127,7 @@ struct Attendance {
     employee_name: String,
     enter_info: String,
     leave_info: String,
-    work_hours: u32,
+    work_hours: f64,
     abnormal_reason: String,
 }
 
@@ -142,10 +142,10 @@ fn get_everyone_statistics(
     let mut res = HashMap::new();
 
     for r in 5..max_row + 1 {
-        if let Some(attendance_date) = worksheet.get_formatted_value((5, r)).get(..8) {
-            // println!("{attendance_date}");
+        if let Some(attendance_date) = worksheet.get_formatted_value((7, r)).get(..8) {
+            // println!("attendance_date: {attendance_date}");
             if let Some(date) = dates.get(attendance_date) {
-                let employee_id = worksheet.get_formatted_value((2, r));
+                let employee_id = worksheet.get_formatted_value((4, r));
                 if employee_id.is_empty() {
                     continue;
                 }
@@ -158,10 +158,10 @@ fn get_everyone_statistics(
                     *date,
                     Attendance {
                         employee_name: worksheet.get_formatted_value((1, r)),
-                        enter_info: worksheet.get_formatted_value((7, r)),
-                        leave_info: worksheet.get_formatted_value((9, r)),
+                        enter_info: worksheet.get_formatted_value((10, r)),
+                        leave_info: worksheet.get_formatted_value((12, r)),
                         abnormal_reason: String::new(),
-                        work_hours: worksheet.get_value_number((17, r)).unwrap_or_default() as u32,
+                        work_hours: worksheet.get_value_number((20, r)).unwrap_or_default(),
                     },
                 );
             }
@@ -252,7 +252,7 @@ async fn save_res(
 
                     worksheet
                         .get_cell_mut((2 * i as u32 + 3, j as u32 + 2))
-                        .set_value_number(attendance.work_hours / 8);
+                        .set_value_number(attendance.work_hours / 60.0);
 
                     //原因
                     worksheet
