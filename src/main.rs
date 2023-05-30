@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 use rfd::AsyncFileDialog;
-use slint::{PlatformError, SharedString};
+use slint::{PhysicalPosition, PlatformError, SharedString};
 use time::{Duration, OffsetDateTime};
 
 slint::include_modules!();
@@ -15,7 +15,25 @@ fn main() -> Result<(), PlatformError> {
     on_record_file_select(&ui);
     on_execute_clicked(&ui);
 
+    ui.window().set_position(PhysicalPosition::new(520, 520));
+
     ui.run()
+    // use i_slint_backend_winit::WinitWindowAccessor;
+    // ui.show()?;
+    //
+    // if let Some(s) = ui
+    //     .window()
+    //     .with_winit_window(|w| w.primary_monitor().map(|h| h.size()).unwrap_or_default())
+    // {
+    //     ui.window().set_position(PhysicalPosition::new(
+    //         ((s.width - 800) / 2) as i32,
+    //         ((s.height - 240) / 2) as i32,
+    //     ));
+    // }
+    // println!("position: {:#?}", ui.window().position());
+    //
+    // slint::run_event_loop()?;
+    // ui.hide()
 }
 
 fn init_date(ui: &App) {
