@@ -9,24 +9,24 @@ use umya_spreadsheet::{HorizontalAlignmentValues, Style, VerticalAlignmentValues
 
 use crate::App;
 
-pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
+pub(crate) async fn execute_handle(app_weak: slint::Weak<App>) {
     let (s, r) = async_channel::bounded(1);
-    let ui_weak_copy = ui_weak.clone();
-    ui_weak_copy
-        .upgrade_in_event_loop(move |ui| {
-            let (start_date, end_date) = (ui.get_start_date(), ui.get_end_date());
+    let app_weak_copy = app_weak.clone();
+    app_weak_copy
+        .upgrade_in_event_loop(move |app| {
+            let (start_date, end_date) = (app.get_start_date(), app.get_end_date());
             let mut user_input = UserInput {
                 start_date: start_date.to_string(),
                 end_date: end_date.to_string(),
-                statistics_file: ui.get_statistics_file().to_string(),
-                record_file: ui.get_record_file().to_string(),
+                statistics_file: app.get_statistics_file().to_string(),
+                record_file: app.get_record_file().to_string(),
             };
 
             let (start_date_check, end_date_check) = user_input.check_date();
             if start_date_check && end_date_check {
                 if start_date > end_date {
-                    ui.set_start_date(end_date);
-                    ui.set_end_date(start_date);
+                    app.set_start_date(end_date);
+                    app.set_end_date(start_date);
                     std::mem::swap(&mut user_input.start_date, &mut user_input.end_date);
                 }
                 s.send_blocking(Some(user_input)).unwrap();
@@ -38,8 +38,8 @@ pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
                     text = SharedString::from("结束日期有误!");
                 }
 
-                ui.set_error_text(text);
-                ui.invoke_alert_error();
+                app.set_error_text(text);
+                app.invoke_alert_error();
             }
 
             s.close();
@@ -48,18 +48,18 @@ pub(crate) async fn execute_handle(ui_weak: slint::Weak<App>) {
 
     if let Some(user_input) = r.recv().await.unwrap_or_default() {
         if let Err(e) = generate_report(user_input).await {
-            ui_weak_copy
-                .upgrade_in_event_loop(move |ui| {
-                    ui.set_error_text(e.to_string().into());
-                    ui.invoke_alert_error();
+            app_weak_copy
+                .upgrade_in_event_loop(move |app| {
+                    app.set_error_text(e.to_string().into());
+                    app.invoke_alert_error();
                 })
                 .unwrap();
         }
     }
 
-    ui_weak_copy
-        .upgrade_in_event_loop(move |ui| {
-            ui.set_button_enabled(true);
+    app_weak_copy
+        .upgrade_in_event_loop(move |app| {
+            app.set_button_enabled(true);
         })
         .unwrap();
 }

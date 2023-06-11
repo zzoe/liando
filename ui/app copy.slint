@@ -1,0 +1,139 @@
+import { DemoPalette, Page } from "common.slint";
+import { HomePage } from "home_page.slint";
+import { StatisticsPage } from "settings_page.slint";
+
+component SideBarIcon inherits Rectangle {
+    in-out property <bool> active;
+    callback activate;
+
+    GridLayout {
+        padding: 0px;
+        @children
+    }
+
+    TouchArea {
+        clicked => { root.activate(); }
+    }
+}
+
+export component App inherits Window {
+    in property<string> error_text;
+    callback alert_error;
+    alert_error => { error_popup.show(); }
+
+    icon: @image-url("./logo.png");
+    title: "考勤助手";
+    preferred-width: 800px;
+    background: DemoPalette.main-background;
+    default-font-size: DemoPalette.base-font-size;
+
+    out property<int> active-page: 0;
+    //时间
+    in-out property<string> start_date;
+    in-out property<string> end_date;
+
+    error_popup := PopupWindow {
+        width: root.width;
+
+        Rectangle {
+            background: root.background;
+            border-color: error_popup_text.color;
+            border-width: 2px;
+        }
+
+        error_popup_layout := Dialog {
+            height:100%; width: 100%;
+            error_popup_text := Text {
+                color: red;
+                text: { root.error_text };
+                wrap: word-wrap;
+            }
+        }
+    }
+    
+    HorizontalLayout {
+        padding: 10px;
+        padding-left: 67px;
+
+        main-view := Rectangle {
+            height: 100%;
+            border-radius: 30px;
+            background: DemoPalette.page-background-color;
+
+            Rectangle {
+                clip: true;
+                x: main-view.border-radius / 2;
+                y: main-view.border-radius / 2;
+                width: main-view.width - main-view.border-radius;
+                height: main-view.height - main-view.border-radius;
+
+                HomePage {
+                    y: root.active-page == 0 ? 0 : root.active-page < 0 ? - self.height - 1px : parent.height + 1px;
+                    animate y { duration: 125ms; easing: ease; }
+
+                    start-date: root.start-date;
+                    end-date: root.end-date;
+                }
+                StatisticsPage {
+                    y: root.active-page == 1 ? 0 : root.active-page < 1 ? - self.height - 1px : parent.height + 1px;
+                    animate y { duration: 125ms; easing: ease; }
+                }
+                // RecordPage {
+                //     y: root.active-page == 2 ? 0 : root.active-page < 2 ? - self.height - 1px : parent.height + 1px;
+                //     animate y { duration: 125ms; easing: ease; }
+                // }
+                // EmployeePage {
+                //     y: root.active-page == 3 ? 0 : root.active-page < 2 ? - self.height - 1px : parent.height + 1px;
+                //     animate y { duration: 125ms; easing: ease; }
+                // }
+            }
+        }
+    }
+
+    sidebar := Rectangle {
+        width: 57px;
+        x: 10px;
+
+        function icon-y(index: int) -> length {
+            return 100px // top padding
+                + index * 72px;
+        }
+
+        Image {
+            x:0;
+            source: @image-url("images/page_selection.svg");
+            y: sidebar.icon-y(root.active-page) - self.width / 2;
+            animate y {
+                duration: 125ms;
+            }
+            width: main-view.x - sidebar.x + 1px;
+            height: 1.75 * self.width;
+            colorize: DemoPalette.page-background-color;
+        }
+
+        for page-icon[idx] in [
+            @image-url("images/home.svg"),
+            @image-url("images/settings.svg"),
+        ] : SideBarIcon {
+            y: sidebar.icon-y(idx);
+            x: 16px;
+            height: 35px;
+            width: 30px;
+
+            icon := Image {
+                colorize: (root.active-page == idx) ? DemoPalette.active-page-icon-color : DemoPalette.inactive-page-icon-color;
+                animate colorize {
+                    duration: 125ms;
+                }
+                source: page-icon;
+                image-fit: contain;
+                width: 100%;
+                height: 100%;
+            }
+
+            activate => {
+                root.active-page = idx;
+            }
+        }
+    }
+}
