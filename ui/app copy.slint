@@ -16,21 +16,38 @@ component SideBarIcon inherits Rectangle {
     }
 }
 
-export component App inherits Window {
-    in property<string> error_text;
-    callback alert_error;
-    alert_error => { error_popup.show(); }
+export struct InProps  {
+    error-text: string,
+}
 
+export struct OutProps  {
+    active-page: int,
+}
+
+export struct InOutProps  {
+    start-date: string,
+    end-date: string,
+    output-file: string,
+}
+
+export component App inherits Window {
     icon: @image-url("./logo.png");
     title: "考勤助手";
     preferred-width: 800px;
     background: DemoPalette.main-background;
     default-font-size: DemoPalette.base-font-size;
 
-    out property<int> active-page: 0;
-    //时间
-    in-out property<string> start_date;
-    in-out property<string> end_date;
+    in property <InProps> in-props;
+    out property <OutProps> out-props: {active-page: 0};
+    in-out property <InOutProps> in-out-props;
+
+    //Home页按钮
+    callback home_output_clicked;
+    callback home_execute_clicked;
+
+    //报错弹窗
+    callback alert_error;
+    alert_error => { error_popup.show(); }
 
     error_popup := PopupWindow {
         width: root.width;
@@ -45,7 +62,7 @@ export component App inherits Window {
             height:100%; width: 100%;
             error_popup_text := Text {
                 color: red;
-                text: { root.error_text };
+                text: { root.in-props.error-text };
                 wrap: word-wrap;
             }
         }
@@ -68,14 +85,14 @@ export component App inherits Window {
                 height: main-view.height - main-view.border-radius;
 
                 HomePage {
-                    y: root.active-page == 0 ? 0 : root.active-page < 0 ? - self.height - 1px : parent.height + 1px;
+                    y: root.out-props.active-page == 0 ? 0 : root.out-props.active-page < 0 ? - self.height - 1px : parent.height + 1px;
                     animate y { duration: 125ms; easing: ease; }
 
-                    start-date: root.start-date;
-                    end-date: root.end-date;
+                    start-date: root.in-out-props.start-date;
+                    end-date: root.in-out-props.end-date;
                 }
                 StatisticsPage {
-                    y: root.active-page == 1 ? 0 : root.active-page < 1 ? - self.height - 1px : parent.height + 1px;
+                    y: root.out-props.active-page == 1 ? 0 : root.out-props.active-page < 1 ? - self.height - 1px : parent.height + 1px;
                     animate y { duration: 125ms; easing: ease; }
                 }
                 // RecordPage {
@@ -102,7 +119,7 @@ export component App inherits Window {
         Image {
             x:0;
             source: @image-url("images/page_selection.svg");
-            y: sidebar.icon-y(root.active-page) - self.width / 2;
+            y: sidebar.icon-y(root.out-props.active-page) - self.width / 2;
             animate y {
                 duration: 125ms;
             }
@@ -121,7 +138,7 @@ export component App inherits Window {
             width: 30px;
 
             icon := Image {
-                colorize: (root.active-page == idx) ? DemoPalette.active-page-icon-color : DemoPalette.inactive-page-icon-color;
+                colorize: (root.out-props.active-page == idx) ? DemoPalette.active-page-icon-color : DemoPalette.inactive-page-icon-color;
                 animate colorize {
                     duration: 125ms;
                 }
@@ -132,7 +149,7 @@ export component App inherits Window {
             }
 
             activate => {
-                root.active-page = idx;
+                root.out-props.active-page = idx;
             }
         }
     }
