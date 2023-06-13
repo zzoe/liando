@@ -5,6 +5,7 @@ import {Button, HorizontalBox, LineEdit, StandardButton, TextEdit, VerticalBox} 
 import {Page} from "common.slint";
 
 export component HomePage inherits Page {
+    header: "生成";
     //时间
     in-out property<string> start_date <=> start_date_edit.text;
     in-out property<string> end_date <=> end_date_edit.text;
@@ -13,78 +14,55 @@ export component HomePage inherits Page {
     in-out property <bool> button_enabled: true;
 
     //文件选择
-    in-out property<string> statistics_file <=> statistics_file_edit.text;
-    callback statistics_select_clicked;
-    in-out property<string> record_file <=> record_file_edit.text;
-    callback record_select_clicked;
+    // in-out property<string> statistics_file <=> statistics_file_edit.text;
+    // callback statistics_select_clicked;
+    // in-out property<string> record_file <=> record_file_edit.text;
+    // callback record_select_clicked;
 
     //生成按钮
     callback execute_clicked;
 
-    VerticalBox {
-        HorizontalBox {
-            Text {
-                text: "开始日期:";
-                vertical-alignment: center;
-            }
-            start_date_edit := LineEdit {
-                placeholder-text: "请输入开始日期";
-            }
-            Text {
-                text: "结束日期:";
-                vertical-alignment: center;
-            }
-            end_date_edit := LineEdit {
-                placeholder-text: "请输入结束日期";
-            }
-        }
+    VerticalLayout {
+        padding-top: 46px /* header line height in design */
+                     + /* extra top-padding in design */ 27px;
+        spacing: 24px;
 
-        HorizontalBox {
-            Text {
-                text: "考勤每日统计表:";
-                vertical-alignment: center;
-            }
-            statistics_file_edit := LineEdit {
-                placeholder-text: "请输入考勤每日统计表文件地址";
-            }
-            Button {
-                text: "📂";
-                enabled: root.button_enabled;
-                clicked => {
-                    root.button_enabled = false;
-                    root.statistics_select_clicked();
+        VerticalBox {
+            HorizontalBox {
+                width: 100%;
+                vertical-stretch: 0;
+                Text {
+                    text: "开始日期:";
+                    vertical-alignment: center;
+                }
+                start_date_edit := LineEdit {
+                    placeholder-text: "请输入开始日期";
+                }
+                Text {
+                    text: "结束日期:";
+                    vertical-alignment: center;
+                }
+                end_date_edit := LineEdit {
+                    placeholder-text: "请输入结束日期";
                 }
             }
-        }
 
-        HorizontalBox {
-            Text {
-                text: "考勤原始记录表:";
-                vertical-alignment: center;
-            }
-            record_file_edit := LineEdit {
-                placeholder-text: "请输入考勤原始记录表文件地址";
-            }
-            Button {
-                text: "📂";
-                enabled: root.button_enabled;
-                clicked => {
-                    root.button_enabled = false;
-                    root.record_select_clicked();
+            HorizontalBox {vertical-stretch: 1;}
+
+            HorizontalBox {
+                horizontal-stretch: 1;
+                Button {
+                    vertical-stretch: 1;
+                    text: "见证奇迹的时刻\n\nDUANG ！";
+                    enabled: root.button_enabled;
+                    clicked => {
+                        root.button_enabled = false;
+                        root.execute_clicked();
+                    }
                 }
             }
-        }
-
-        HorizontalBox {
-            Button {
-                text: "生成";
-                enabled: root.button_enabled;
-                clicked => {
-                    root.button_enabled = false;
-                    root.execute_clicked();
-                }
-            }
+            
+            HorizontalBox {vertical-stretch: 1;}
         }
     }
-
 }

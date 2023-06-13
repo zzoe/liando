@@ -1,6 +1,6 @@
-import { DemoPalette, Page } from "common.slint";
+import { DemoPalette, Page, InProps, OutProps, InOutProps } from "common.slint";
 import { HomePage } from "home_page.slint";
-import { StatisticsPage } from "settings_page.slint";
+import { SettingsPage } from "settings_page.slint";
 
 component SideBarIcon inherits Rectangle {
     in-out property <bool> active;
@@ -16,51 +16,59 @@ component SideBarIcon inherits Rectangle {
     }
 }
 
-export struct InProps  {
-    error-text: string,
-}
-
-export struct OutProps  {
-    active-page: int,
-}
-
-export struct InOutProps  {
-    start-date: string,
-    end-date: string,
-    output-file: string,
-}
-
 export component App inherits Window {
     icon: @image-url("./logo.png");
     title: "考勤助手";
-    preferred-width: 800px;
+    preferred-width: 960px;
+    preferred-height: 600px;
+    // preferred-height: settings-page.height;
     background: DemoPalette.main-background;
     default-font-size: DemoPalette.base-font-size;
 
     in property <InProps> in-props;
     out property <OutProps> out-props: {active-page: 0};
-    in-out property <InOutProps> in-out-props;
+    in-out property <InOutProps> in-out-props
+    : {
+        button-enabled: true,
+        statistics-employee-id: "D",
+        statistics-date:"G",
+        statistics-enter-result:"J",
+        statistics-leave-result:"L",
+        statistics-work-minutes:"T",
+        record-employee-id:"D",
+        record-date:"G",
+        record-abnormal-reason:"M"
+    };
 
     //Home页按钮
-    callback home_output_clicked;
-    callback home_execute_clicked;
+    callback home-output-clicked;
+    callback home-execute-clicked;
+    //Statistics页按钮
+    callback statistics-search-clicked;
+    callback statistics-import-clicked;
+    //Record页按钮
+    callback record-search-clicked;
+    callback record-import-clicked;
+    //Template页按钮
+    callback template-search-clicked;
+    callback template-import-clicked;
 
     //报错弹窗
-    callback alert_error;
-    alert_error => { error_popup.show(); }
+    callback alert-error;
+    alert-error => { error-popup.show(); }
 
-    error_popup := PopupWindow {
+    error-popup := PopupWindow {
         width: root.width;
 
         Rectangle {
             background: root.background;
-            border-color: error_popup_text.color;
+            border-color: error-popup-text.color;
             border-width: 2px;
         }
 
-        error_popup_layout := Dialog {
+        error-popup-layout := Dialog {
             height:100%; width: 100%;
-            error_popup_text := Text {
+            error-popup-text := Text {
                 color: red;
                 text: { root.in-props.error-text };
                 wrap: word-wrap;
@@ -85,24 +93,20 @@ export component App inherits Window {
                 height: main-view.height - main-view.border-radius;
 
                 HomePage {
-                    y: root.out-props.active-page == 0 ? 0 : root.out-props.active-page < 0 ? - self.height - 1px : parent.height + 1px;
+                    y: root.out-props.active-page == 0 ? 0 : parent.height + 1px;
                     animate y { duration: 125ms; easing: ease; }
 
                     start-date: root.in-out-props.start-date;
                     end-date: root.in-out-props.end-date;
+                    button-enabled: root.in-out-props.button-enabled;
+
+                    execute-clicked => {root.home-execute-clicked()}
                 }
-                StatisticsPage {
-                    y: root.out-props.active-page == 1 ? 0 : root.out-props.active-page < 1 ? - self.height - 1px : parent.height + 1px;
+                SettingsPage {
+                    y: root.out-props.active-page == 1 ? 0 : parent.height + 1px;
                     animate y { duration: 125ms; easing: ease; }
+                    in-out-props: root.in-out-props;
                 }
-                // RecordPage {
-                //     y: root.active-page == 2 ? 0 : root.active-page < 2 ? - self.height - 1px : parent.height + 1px;
-                //     animate y { duration: 125ms; easing: ease; }
-                // }
-                // EmployeePage {
-                //     y: root.active-page == 3 ? 0 : root.active-page < 2 ? - self.height - 1px : parent.height + 1px;
-                //     animate y { duration: 125ms; easing: ease; }
-                // }
             }
         }
     }

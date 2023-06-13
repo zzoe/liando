@@ -1,6 +1,29 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
+export struct InProps  {
+    error-text: string,
+}
+
+export struct OutProps  {
+    active-page: int,
+}
+
+export struct InOutProps  {
+    button-enabled: bool,
+    start-date: string,
+    end-date: string,
+    output-file: string,
+    statistics-employee-id: string,
+    statistics-date: string,
+    statistics-enter-result: string,
+    statistics-leave-result: string,
+    statistics-work-minutes: string,
+    record-employee-id: string,
+    record-date: string,
+    record-abnormal-reason: string,
+}
+
 struct ButtonColors  {
     base: color,
     pressed: color,

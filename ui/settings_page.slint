@@ -1,92 +1,141 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-import { DemoPalette, Page, SpinBox, ComboBox, CheckBox, Label } from "common.slint";
+import { DemoPalette, InOutProps, Label, Page } from "common.slint";
+import { Button, LineEdit } from "std-widgets.slint";
 
-export component StatisticsPage inherits Page {
-    header: "Settings";
+export component SettingsPage inherits Page {
+    header: "设置";
+    //按钮统一控制
+    in-out property <InOutProps> in-out-props;
+
+    callback template-import-clicked;
 
     GridLayout {
         padding-top: 46px /* header line height in design */
                      + /* extra top-padding in design */ 27px;
         spacing: 24px;
+
         Row {
             Text {
-                colspan: 4;
-                text: "General";
+                colspan: 6;
+                text: "每日统计表";
                 color: DemoPalette.secondary-foreground-color;
                 font-size: DemoPalette.base-font-size * 1.125;
                 font-weight: 800;
             }
         }
         Row {
-            Label { text: "TURBO mode"; }
-            CheckBox { checked: true; }
+            Label { text: "工号"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.statistics-employee-id;
+            }
 
-            Rectangle {}
+            Label { text: "考勤日期"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.statistics-date;
+            }
 
-            Label { text: "Power Management"; }
-            CheckBox {
-                checked: false;
-                text: "Eco Mode";
+            Label { text: "上班打卡结果"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.statistics-enter-result;
+            }
+        }
+        Row{
+            Label { text: "下班打卡结果"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.statistics-leave-result;
+            }
+
+            Label { text: "工作时长(分钟)"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.statistics-work-minutes;
+            }
+        }
+        Row {
+            Button {
+                colspan: 6;
+                text: "导入每日统计表";
+                enabled: root.in-out-props.button_enabled;
+                clicked => {
+                    root.in-out-props.button_enabled = false;
+                    root.template-import-clicked();
+                }
             }
         }
 
         Row {
             Text {
-                colspan: 4;
-                text: "Defaults";
+                colspan: 6;
+                text: "原始记录表";
                 color: DemoPalette.secondary-foreground-color;
                 font-size: DemoPalette.base-font-size * 1.125;
                 font-weight: 800;
             }
         }
         Row {
-            Label { text: "Layout"; }
-            ComboBox {
-                value: "Portrait";
-                choices: ["Portrait", "Landscape"];
+            Label { text: "工号"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.record-employee-id;
             }
 
-            Rectangle {}
-
-            Label { text: "Paper Tray"; }
-            ComboBox {
-                value: "Special Tray";
-                choices: ["Special Tray", "Normal Tray"];
-            }
-        }
-        Row {
-            Label { text: "Quality"; }
-            ComboBox {
-                value: "Best";
-                choices: ["Best", "Medium", "Draft"];
+            Label { text: "考勤日期"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.record-date;
             }
 
-            Rectangle {}
-
-            Label { text: "Paper Type"; }
-            ComboBox {
-                value: "Standard";
-                choices: ["Standard", "Non-standard"];
+            Label { text: "异常打卡原因"; }
+            LineEdit {
+                placeholder-text: "第几列";
+                text: in-out-props.record-abnormal-reason;
             }
         }
         Row {
-            Label { text: "Color Mode"; }
-            ComboBox {
-                value: "Grayscale";
-                choices: ["Grayscale", "RGB", "YCMB"];
-            }
-
-            Rectangle {}
-
-            Label { text: "Paper Handling"; }
-            CheckBox {
-                checked: true;
-                text: "Sort Pages";
+            Button {
+                colspan: 6;
+                text: "导入原始记录表";
+                enabled: root.in-out-props.button_enabled;
+                clicked => {
+                    root.in-out-props.button_enabled = false;
+                    root.template-import-clicked();
+                }
             }
         }
-        Row { Rectangle {} }
+
+        Row {
+            Text {
+                colspan: 6;
+                text: "模板";
+                color: DemoPalette.secondary-foreground-color;
+                font-size: DemoPalette.base-font-size * 1.125;
+                font-weight: 800;
+            }
+        }
+        Row {
+            Button {
+                colspan: 6;
+                text: "选择导出模板";
+                enabled: root.in-out-props.button_enabled;
+                clicked => {
+                    root.in-out-props.button_enabled = false;
+                    root.template-import-clicked();
+                }
+            }
+        }
+
+        Row{
+            Rectangle {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+            }
+        }
     }
 
 }
