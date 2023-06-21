@@ -2,25 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
 import {Button, HorizontalBox, LineEdit, StandardButton, TextEdit, VerticalBox} from "std-widgets.slint";
-import {Page} from "common.slint";
+import {Page, Logic} from "common.slint";
 
 export component HomePage inherits Page {
     header: "生成";
-    //时间
-    in-out property<string> start_date <=> start_date_edit.text;
-    in-out property<string> end_date <=> end_date_edit.text;
-
-    //按钮统一控制
-    in-out property <bool> button_enabled: true;
-
-    //文件选择
-    // in-out property<string> statistics_file <=> statistics_file_edit.text;
-    // callback statistics_select_clicked;
-    // in-out property<string> record_file <=> record_file_edit.text;
-    // callback record_select_clicked;
-
-    //生成按钮
-    callback execute_clicked;
 
     VerticalLayout {
         padding-top: 46px /* header line height in design */
@@ -35,15 +20,17 @@ export component HomePage inherits Page {
                     text: "开始日期:";
                     vertical-alignment: center;
                 }
-                start_date_edit := LineEdit {
+                LineEdit {
                     placeholder-text: "请输入开始日期";
+                    text <=> Logic.start_date;
                 }
                 Text {
                     text: "结束日期:";
                     vertical-alignment: center;
                 }
-                end_date_edit := LineEdit {
+                LineEdit {
                     placeholder-text: "请输入结束日期";
+                    text <=> Logic.end-date;
                 }
             }
 
@@ -54,10 +41,10 @@ export component HomePage inherits Page {
                 Button {
                     vertical-stretch: 1;
                     text: "见证奇迹的时刻\n\nDUANG ！";
-                    enabled: root.button_enabled;
+                    enabled: Logic.button_enabled;
                     clicked => {
-                        root.button_enabled = false;
-                        root.execute_clicked();
+                        Logic.button_enabled = false;
+                        Logic.home-execute-clicked();
                     }
                 }
             }

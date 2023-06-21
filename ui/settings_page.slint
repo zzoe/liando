@@ -1,139 +1,170 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-import { DemoPalette, InOutProps, Label, Page } from "common.slint";
-import { Button, LineEdit } from "std-widgets.slint";
+import { DemoPalette, Logic, Label, Page } from "common.slint";
+import { Button, LineEdit , HorizontalBox, GridBox, VerticalBox, TabWidget} from "std-widgets.slint";
 
 export component SettingsPage inherits Page {
     header: "设置";
-    //按钮统一控制
-    in-out property <InOutProps> in-out-props;
 
-    callback template-import-clicked;
-
-    GridLayout {
+    VerticalBox {
         padding-top: 46px /* header line height in design */
-                     + /* extra top-padding in design */ 27px;
-        spacing: 24px;
-
-        Row {
-            Text {
-                colspan: 6;
-                text: "每日统计表";
-                color: DemoPalette.secondary-foreground-color;
-                font-size: DemoPalette.base-font-size * 1.125;
-                font-weight: 800;
-            }
-        }
-        Row {
-            Label { text: "工号"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.statistics-employee-id;
-            }
-
-            Label { text: "考勤日期"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.statistics-date;
-            }
-
-            Label { text: "上班打卡结果"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.statistics-enter-result;
-            }
-        }
-        Row{
-            Label { text: "下班打卡结果"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.statistics-leave-result;
-            }
-
-            Label { text: "工作时长(分钟)"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.statistics-work-minutes;
-            }
-        }
-        Row {
-            Button {
-                colspan: 6;
-                text: "导入每日统计表";
-                enabled: root.in-out-props.button_enabled;
-                clicked => {
-                    root.in-out-props.button_enabled = false;
-                    root.template-import-clicked();
+                   + 27px /* extra top-padding in design */ ;
+        TabWidget { 
+            Tab{
+                title: "每日统计表";
+                VerticalBox {
+                    alignment: start;
+                    HorizontalBox {
+                        GridBox {
+                            spacing: 24px;
+                            Row {
+                                HorizontalBox {
+                                    Label { text: "工号："; width: 130px;}
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.statistics-employee-id-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                                HorizontalBox {
+                                    Label { text: "考勤日期："; width: 130px; }
+                                    LineEdit {
+                                        vertical-stretch: 0;
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.statistics-date-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                            }
+                            Row{
+                                HorizontalBox {
+                                    Label { text: "上班打卡结果："; width: 130px; }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.statistics-enter-result-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                                HorizontalBox {
+                                    Label { text: "下班打卡结果："; width: 130px; }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.statistics-leave-result-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                            }
+                            Row{
+                                HorizontalBox {
+                                    Label { text: "工作时长(分钟)："; width: 130px; }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.statistics-work-minutes-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                                HorizontalBox {
+                                    Label { text: "数据起始行号："; width: 130px;  }
+                                    LineEdit {
+                                        placeholder-text: "第几行";
+                                        text <=> Logic.statistics-start-row;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                            }
+                        }
+                    }
+                    HorizontalBox {
+                        alignment: center;
+                        Button {
+                            text: "📂导入每日统计表";
+                            enabled: Logic.button_enabled;
+                            clicked => {
+                                Logic.button_enabled = false;
+                                Logic.template-import-clicked();
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        Row {
-            Text {
-                colspan: 6;
-                text: "原始记录表";
-                color: DemoPalette.secondary-foreground-color;
-                font-size: DemoPalette.base-font-size * 1.125;
-                font-weight: 800;
-            }
-        }
-        Row {
-            Label { text: "工号"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.record-employee-id;
-            }
-
-            Label { text: "考勤日期"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.record-date;
-            }
-
-            Label { text: "异常打卡原因"; }
-            LineEdit {
-                placeholder-text: "第几列";
-                text: in-out-props.record-abnormal-reason;
-            }
-        }
-        Row {
-            Button {
-                colspan: 6;
-                text: "导入原始记录表";
-                enabled: root.in-out-props.button_enabled;
-                clicked => {
-                    root.in-out-props.button_enabled = false;
-                    root.template-import-clicked();
+            Tab{
+                title: "原始记录表";
+                VerticalBox {
+                    alignment: start;
+                    HorizontalBox {
+                        GridBox {
+                            spacing: 24px;
+                            
+                            Row {
+                                HorizontalBox {
+                                    Label { text: "工号："; width: 130px;  }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.record-employee-id;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                                HorizontalBox {
+                                    Label { text: "考勤日期："; width: 130px;  }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.record-date-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                            }
+                            Row {
+                                HorizontalBox {
+                                    Label { text: "异常打卡原因："; width: 130px;  }
+                                    LineEdit {
+                                        placeholder-text: "第几列";
+                                        text <=> Logic.record-abnormal-reason-col;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                                HorizontalBox {
+                                    Label { text: "数据起始行号："; width: 130px;  }
+                                    LineEdit {
+                                        placeholder-text: "第几行";
+                                        text <=> Logic.record-start-row;
+                                    }
+                                    Rectangle {horizontal-stretch: 1;}
+                                }
+                            }
+                        }
+                    }
+                    HorizontalBox {
+                        alignment: center;
+                        Button {
+                            text: "📂导入原始记录表";
+                            enabled: Logic.button_enabled;
+                            clicked => {
+                                Logic.button_enabled = false;
+                                Logic.template-import-clicked();
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        Row {
-            Text {
-                colspan: 6;
-                text: "模板";
-                color: DemoPalette.secondary-foreground-color;
-                font-size: DemoPalette.base-font-size * 1.125;
-                font-weight: 800;
-            }
-        }
-        Row {
-            Button {
-                colspan: 6;
-                text: "选择导出模板";
-                enabled: root.in-out-props.button_enabled;
-                clicked => {
-                    root.in-out-props.button_enabled = false;
-                    root.template-import-clicked();
+            Tab{
+                title: "模板";
+                VerticalBox {
+                    alignment: center;
+                    HorizontalBox {
+                        alignment: center;
+                        Button {
+                            text: "📂选择导出模板";
+                            enabled: Logic.button_enabled;
+                            clicked => {
+                                Logic.button_enabled = false;
+                                Logic.template-import-clicked();
+                            }
+                        }
+                    }
                 }
-            }
-        }
-
-        Row{
-            Rectangle {
-                horizontal-stretch: 1;
-                vertical-stretch: 1;
             }
         }
     }

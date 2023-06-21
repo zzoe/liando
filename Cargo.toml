@@ -9,7 +9,6 @@ edition = "2021"
 anyhow = "*"
 async-channel = "*"
 async-global-executor = "*"
-#i-slint-backend-winit = "*"
 rfd = "*"
 slint = "*"
 time = { version = "*", features = ["formatting", "local-offset", "macros", "parsing"] }

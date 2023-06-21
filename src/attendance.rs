@@ -2,31 +2,31 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use rfd::AsyncFileDialog;
-use slint::SharedString;
+use slint::{SharedString, ComponentHandle};
 use time::{macros::format_description, Date, Duration};
 use umya_spreadsheet::helper::coordinate::{coordinate_from_index, string_from_column_index};
 use umya_spreadsheet::{HorizontalAlignmentValues, Style, VerticalAlignmentValues};
 
-use crate::App;
+use crate::{App, Logic};
 
 pub(crate) async fn execute_handle(app_weak: slint::Weak<App>) {
     let (s, r) = async_channel::bounded(1);
     let app_weak_copy = app_weak.clone();
     app_weak_copy
         .upgrade_in_event_loop(move |app| {
-            let (start_date, end_date) = (app.get_start_date(), app.get_end_date());
+            let (start_date, end_date) = (app.global::<Logic>().get_start_date(), app.global::<Logic>().get_end_date());
             let mut user_input = UserInput {
                 start_date: start_date.to_string(),
                 end_date: end_date.to_string(),
-                statistics_file: app.get_statistics_file().to_string(),
-                record_file: app.get_record_file().to_string(),
+                statistics_file: "".to_string(),
+                record_file: "".to_string(),
             };
 
             let (start_date_check, end_date_check) = user_input.check_date();
             if start_date_check && end_date_check {
                 if start_date > end_date {
-                    app.set_start_date(end_date);
-                    app.set_end_date(start_date);
+                    app.global::<Logic>().set_start_date(end_date);
+                    app.global::<Logic>().set_end_date(start_date);
                     std::mem::swap(&mut user_input.start_date, &mut user_input.end_date);
                 }
                 s.send_blocking(Some(user_input)).unwrap();
@@ -38,7 +38,7 @@ pub(crate) async fn execute_handle(app_weak: slint::Weak<App>) {
                     text = SharedString::from("结束日期有误!");
                 }
 
-                app.set_error_text(text);
+                app.global::<Logic>().set_error_text(text);
                 app.invoke_alert_error();
             }
 
@@ -50,7 +50,7 @@ pub(crate) async fn execute_handle(app_weak: slint::Weak<App>) {
         if let Err(e) = generate_report(user_input).await {
             app_weak_copy
                 .upgrade_in_event_loop(move |app| {
-                    app.set_error_text(e.to_string().into());
+                    app.global::<Logic>().set_error_text(e.to_string().into());
                     app.invoke_alert_error();
                 })
                 .unwrap();
@@ -59,7 +59,7 @@ pub(crate) async fn execute_handle(app_weak: slint::Weak<App>) {
 
     app_weak_copy
         .upgrade_in_event_loop(move |app| {
-            app.set_button_enabled(true);
+            app.global::<Logic>().set_button_enabled(true);
         })
         .unwrap();
 }

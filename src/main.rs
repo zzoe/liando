@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 use rfd::AsyncFileDialog;
-use slint::{PhysicalPosition, PlatformError, SharedString};
+use slint::{PhysicalPosition, PlatformError, SharedString, ComponentHandle};
 use time::{Duration, OffsetDateTime};
 
 slint::include_modules!();
@@ -18,22 +18,6 @@ fn main() -> Result<(), PlatformError> {
     app.window().set_position(PhysicalPosition::new(520, 520));
 
     app.run()
-    // use i_slint_backend_winit::WinitWindowAccessor;
-    // app.show()?;
-    //
-    // if let Some(s) = app
-    //     .window()
-    //     .with_winit_window(|w| w.primary_monitor().map(|h| h.size()).unwrap_or_default())
-    // {
-    //     app.window().set_position(PhysicalPosition::new(
-    //         ((s.width - 800) / 2) as i32,
-    //         ((s.height - 240) / 2) as i32,
-    //     ));
-    // }
-    // println!("position: {:#?}", app.window().position());
-    //
-    // slint::run_event_loop()?;
-    // app.hide()
 }
 
 fn init_date(app: &App) {
@@ -50,13 +34,13 @@ fn init_date(app: &App) {
         .map(|d| SharedString::from(d.to_string()))
         .unwrap_or_default();
 
-    app.set_start_date(last_monday);
-    app.set_end_date(last_friday);
+    app.global::<Logic>().set_start_date(last_monday);
+    app.global::<Logic>().set_end_date(last_friday);
 }
 
 fn on_statistics_file_select(app: &App) {
     let app_weak = app.as_weak();
-    app.on_statistics_select_clicked(move || {
+    app.global::<Logic>().on_statistics_import_clicked(move || {
         let app_weak_copy = app_weak.clone();
         async_global_executor::spawn(select_file(
             app_weak_copy,
@@ -68,7 +52,7 @@ fn on_statistics_file_select(app: &App) {
 
 fn on_record_file_select(app: &App) {
     let app_weak = app.as_weak();
-    app.on_record_select_clicked(move || {
+    app.global::<Logic>().on_record_import_clicked(move || {
         let app_weak_copy = app_weak.clone();
         async_global_executor::spawn(select_file(
             app_weak_copy,
@@ -80,7 +64,7 @@ fn on_record_file_select(app: &App) {
 
 fn on_execute_clicked(app: &App) {
     let app_weak = app.as_weak();
-    app.on_execute_clicked(move || {
+    app.global::<Logic>().on_home_execute_clicked(move || {
         let app_weak_copy = app_weak.clone();
         async_global_executor::spawn(attendance::execute_handle(app_weak_copy)).detach();
     });
@@ -98,17 +82,11 @@ async fn select_file(app_weak: slint::Weak<App>, file_classification: FileClassi
         .pick_file()
         .await;
 
+    // 根据文件类型分别解析文件
+
     app_weak
         .upgrade_in_event_loop(move |app| {
-            if let Some(file) = opt_file {
-                let file_path = SharedString::from(file.path().to_str().unwrap_or_default());
-                match file_classification {
-                    FileClassification::DailyStatistics => app.set_statistics_file(file_path),
-                    FileClassification::OriginalRecord => app.set_record_file(file_path),
-                }
-            }
-
-            app.set_button_enabled(true);
+            app.global::<Logic>().set_button_enabled(true);
         })
         .unwrap();
 }

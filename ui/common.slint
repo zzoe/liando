@@ -1,27 +1,34 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-export struct InProps  {
-    error-text: string,
+export struct TemplateConfig {
+    template-title-row: string,
+    template-employee-id-col: string,
+    template-start-col: string
 }
 
-export struct OutProps  {
-    active-page: int,
-}
+export global Logic {
+    in property <string> error-text;
+    in-out property <bool> button-enabled: true;
+    in-out property <string> start-date;
+    in-out property <string> end-date;
+    in-out property <string> statistics-employee-id-col;
+    in-out property <string> statistics-date-col;
+    in-out property <string> statistics-enter-result-col;
+    in-out property <string> statistics-leave-result-col;
+    in-out property <string> statistics-work-minutes-col;
+    in-out property <string> statistics-start-row;
+    in-out property <string> record-employee-id;
+    in-out property <string> record-date-col;
+    in-out property <string> record-abnormal-reason-col;
+    in-out property <string> record-start-row;
+    in-out property <[TemplateConfig]> template-configs;
 
-export struct InOutProps  {
-    button-enabled: bool,
-    start-date: string,
-    end-date: string,
-    output-file: string,
-    statistics-employee-id: string,
-    statistics-date: string,
-    statistics-enter-result: string,
-    statistics-leave-result: string,
-    statistics-work-minutes: string,
-    record-employee-id: string,
-    record-date: string,
-    record-abnormal-reason: string,
+    //Home页按钮
+    callback home-execute-clicked;
+    callback statistics-import-clicked;
+    callback record-import-clicked;
+    callback template-import-clicked;
 }
 
 struct ButtonColors  {
