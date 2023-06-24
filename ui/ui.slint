@@ -18,7 +18,7 @@ component SideBarIcon inherits Rectangle {
     }
 }
 
-export component App inherits Window {
+export component Ui inherits Window {
     icon: @image-url("./logo.png");
     title: "考勤助手";
     preferred-width: 960px;
@@ -26,25 +26,26 @@ export component App inherits Window {
     background: DemoPalette.main-background;
     default-font-size: DemoPalette.base-font-size;
 
+    in property<string> alert-text;
     out property <int> active-page;
     //报错弹窗
-    callback alert-error;
-    alert-error => { error-popup.show(); }
+    callback alert();
+    alert() => { popup.show(); }
 
-    error-popup := PopupWindow {
+    popup := PopupWindow {
         width: root.width;
 
         Rectangle {
             background: root.background;
-            border-color: error-popup-text.color;
+            border-color: popup-text.color;
             border-width: 2px;
         }
 
-        error-popup-layout := Dialog {
+        Dialog {
             height:100%; width: 100%;
-            error-popup-text := Text {
+            popup-text := Text {
+                text: root.alert-text;
                 color: red;
-                text: { Logic.error-text };
                 wrap: word-wrap;
             }
         }

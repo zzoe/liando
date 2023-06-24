@@ -82,7 +82,7 @@ export component SettingsPage inherits Page {
                             enabled: Logic.button_enabled;
                             clicked => {
                                 Logic.button_enabled = false;
-                                Logic.template-import-clicked();
+                                Logic.statistics-import-clicked();
                             }
                         }
                     }
@@ -102,7 +102,7 @@ export component SettingsPage inherits Page {
                                     Label { text: "工号："; width: 130px;  }
                                     LineEdit {
                                         placeholder-text: "第几列";
-                                        text <=> Logic.record-employee-id;
+                                        text <=> Logic.record-employee-id-col;
                                     }
                                     Rectangle {horizontal-stretch: 1;}
                                 }
@@ -142,7 +142,7 @@ export component SettingsPage inherits Page {
                             enabled: Logic.button_enabled;
                             clicked => {
                                 Logic.button_enabled = false;
-                                Logic.template-import-clicked();
+                                Logic.record-import-clicked();
                             }
                         }
                     }

@@ -7,10 +7,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "*"
-async-channel = "*"
-async-global-executor = "*"
+async-std = "*"
 rfd = "*"
+sled = "*"
 slint = "*"
+speedy = "*"
 time = { version = "*", features = ["formatting", "local-offset", "macros", "parsing"] }
 umya-spreadsheet = "*"
 
