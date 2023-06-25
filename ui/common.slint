@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
 export struct TemplateConfig {
-    template-title-row: string,
     template-employee-id-col: string,
-    template-start-col: string
+    template-start-col: string,
+    template-title-row: string,
 }
 
 export global Logic {
@@ -27,7 +27,8 @@ export global Logic {
     callback home-execute-clicked;
     callback statistics-import-clicked;
     callback record-import-clicked;
-    callback template-import-clicked;
+    callback template-remove-clicked(int);
+    callback template-push-clicked;
 }
 
 struct ButtonColors  {

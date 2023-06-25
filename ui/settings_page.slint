@@ -1,8 +1,8 @@
 // Copyright © SixtyFPS GmbH <info@slint-ui.com>
 // SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-Slint-commercial
 
-import { DemoPalette, Logic, Label, Page } from "common.slint";
-import { Button, LineEdit , HorizontalBox, GridBox, VerticalBox, TabWidget} from "std-widgets.slint";
+import { Logic, Label, Page } from "common.slint";
+import { Button, GridBox, HorizontalBox, LineEdit, TabWidget, VerticalBox} from "std-widgets.slint";
 
 export component SettingsPage inherits Page {
     header: "设置";
@@ -152,18 +152,101 @@ export component SettingsPage inherits Page {
             Tab{
                 title: "模板";
                 VerticalBox {
-                    alignment: center;
+                    HorizontalBox{
+                        col1 := Label {
+                            text: "Sheet序号"; 
+                            horizontal-alignment: center;
+                            horizontal-stretch: 0.6;
+                        }
+                        col2 := Label {
+                            text: "工号对应列（字母）";
+                            horizontal-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        col3 := Label {
+                            text: "数据起始列（字母）";
+                            horizontal-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        col4 := Label {
+                            text: "表头所在行（数字）";
+                            horizontal-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        col5 := Label {
+                            text: "操作";
+                            horizontal-alignment: center;
+                            horizontal-stretch: 0.5;
+                        }
+                    }
+                    for cfg[index] in Logic.template-configs: HorizontalBox {
+                        Label {
+                            width: col1.width;
+                            horizontal-alignment: center;
+                            text: index;
+                        }
+                        HorizontalBox {
+                            width: col2.width;
+                            alignment: center;
+                            LineEdit {
+                                placeholder-text: "第几列";
+                                text: cfg.template-employee-id-col;
+                                edited => {
+                                    Logic.template-configs[index].template-employee-id-col = self.text;
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            width: col3.width;
+                            alignment: center;
+                            LineEdit {
+                                placeholder-text: "第几列";
+                                text: cfg.template-start-col;
+                                edited => {
+                                    Logic.template-configs[index].template-start-col = self.text;
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            width: col4.width;
+                            alignment: center;
+                            LineEdit {
+                                placeholder-text: "第几行";
+                                text: cfg.template-title-row;
+                                edited => {
+                                    Logic.template-configs[index].template-title-row = self.text;
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            width: col5.width;  
+                            alignment: center;
+                            Button {
+                                text: "-";
+                                enabled: Logic.button_enabled;
+                                clicked => {
+                                    Logic.button_enabled = false;
+                                    Logic.template-remove-clicked(index);
+                                }
+                            }
+                        }
+                        
+                    }
                     HorizontalBox {
-                        alignment: center;
-                        Button {
-                            text: "📂选择导出模板";
-                            enabled: Logic.button_enabled;
-                            clicked => {
-                                Logic.button_enabled = false;
-                                Logic.template-import-clicked();
+                        HorizontalBox {
+                            alignment: center;
+                            width: col1.width;
+                            Button {
+                                text: "+";
+                                enabled: Logic.button_enabled;
+                                clicked => {
+                                    Logic.button_enabled = false;
+                                    Logic.template-push-clicked();
+                                }
                             }
                         }
                     }
+                    Rectangle {vertical-stretch: 1;}
                 }
             }
         }
