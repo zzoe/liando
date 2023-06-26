@@ -10,10 +10,10 @@ use slint::{ComponentHandle, Model, ModelRc, PhysicalPosition, SharedString, Vec
 use speedy::{Readable, Writable};
 use time::{macros::format_description, Date, Duration};
 use time::{OffsetDateTime, UtcOffset};
-use umya_spreadsheet::helper::coordinate::{
-    column_index_from_string, coordinate_from_index, string_from_column_index,
+use umya_spreadsheet::helper::coordinate::{column_index_from_string, string_from_column_index};
+use umya_spreadsheet::{
+    HorizontalAlignmentValues, NumberingFormat, Style, VerticalAlignmentValues,
 };
-use umya_spreadsheet::{HorizontalAlignmentValues, Style, VerticalAlignmentValues};
 
 use crate::{Logic, TemplateConfig, Ui};
 
@@ -157,13 +157,14 @@ impl App {
                 let ui_weak_copy2 = ui_weak.clone();
                 let db = db.clone();
                 task::spawn(async move {
+                    let mut res = Ok(());
                     if let Some(user_input) = get_input(ui_weak_copy1).await {
                         if let Some(file) = select_file("请选择每日统计表").await {
                             // 保存输入，并导入上下班情况和工作时长到sled
-                            let res = update_statistics(file, &user_input, &db);
-                            reset_button(ui_weak_copy2, res);
+                            res = update_statistics(file, &user_input, &db);
                         }
                     }
+                    reset_button(ui_weak_copy2, res);
                 });
             });
     }
@@ -176,13 +177,14 @@ impl App {
             let ui_weak2 = ui_weak.clone();
             let db = db.clone();
             task::spawn(async move {
+                let mut res = Ok(());
                 if let Some(user_input) = get_input(ui_weak1).await {
                     if let Some(file) = select_file("请选择原始记录表").await {
                         // 保存输入，并导入考勤异常原因到sled
-                        let res = update_record(file, &user_input, &db);
-                        reset_button(ui_weak2, res);
+                        res = update_record(file, &user_input, &db);
                     }
                 }
+                reset_button(ui_weak2, res);
             });
         });
     }
@@ -237,14 +239,15 @@ impl App {
             let ui_weak2 = ui_weak.clone();
             let db = db.clone();
             task::spawn(async move {
+                let mut res = Ok(());
                 if let Some(user_input) = get_input(ui_weak1).await {
                     if let Some(file) = select_file("请选择今日份模板作为导出文件").await
                     {
                         // 保存输入，并根据sled信息生成结果
-                        let res = generate_report(file, &user_input, &db);
-                        reset_button(ui_weak2, res);
+                        res = generate_report(file, &user_input, &db);
                     }
                 }
+                reset_button(ui_weak2, res);
             });
         });
     }
@@ -600,47 +603,38 @@ fn generate_report(path: impl AsRef<Path>, user_input: &UserInput, db: &Db) -> R
                     continue;
                 }
                 if let Some(attendance) = every_atd.get(&employee_id) {
-                    worksheet
+                    let style = worksheet
                         .get_cell_mut((date_col, r))
-                        .set_value_number(attendance.work_minutes / 60.0);
-                    worksheet.get_cell_mut((date_col + 1, r)).set_value_string(
-                        format!(
-                            "{}\n{}\n{}",
-                            sum_up(&attendance.enter_info)
-                                .replace("缺卡", "缺早卡")
-                                .replace("补卡", "补早卡"),
-                            sum_up(&attendance.leave_info)
-                                .replace("缺卡", "缺晚卡")
-                                .replace("补卡", "补晚卡"),
-                            sum_up(&attendance.abnormal_reason)
+                        .set_value_number(attendance.work_minutes / 60.0)
+                        .get_style_mut();
+                    style
+                        .get_numbering_format_mut()
+                        .set_format_code(NumberingFormat::FORMAT_NUMBER_00);
+                    center_wrap(style);
+
+                    let style = worksheet
+                        .get_cell_mut((date_col + 1, r))
+                        .set_value_string(
+                            format!(
+                                "{}\n{}\n{}",
+                                sum_up(&attendance.enter_info)
+                                    .replace("缺卡", "缺早卡")
+                                    .replace("补卡", "补早卡"),
+                                sum_up(&attendance.leave_info)
+                                    .replace("缺卡", "缺晚卡")
+                                    .replace("补卡", "补晚卡"),
+                                sum_up(&attendance.abnormal_reason)
+                            )
+                            .trim(),
                         )
-                        .trim(),
-                    );
-                } else {
-                    println!("无此人{employee_id}考勤信息");
+                        .get_style_mut();
+                    center_wrap(style);
                 }
             }
 
             date_col += 2;
             loop_date = loop_date.saturating_add(Duration::days(1));
         }
-
-        // 居中、换行
-        let (col, row) = worksheet.get_highest_column_and_row();
-        let mut style = Style::default();
-        let alignment = style.get_alignment_mut();
-        alignment.set_vertical(VerticalAlignmentValues::Center);
-        alignment.set_horizontal(HorizontalAlignmentValues::Center);
-        alignment.set_wrap_text(true);
-
-        worksheet.set_style_by_range(
-            &format!(
-                "{}:{}",
-                coordinate_from_index(&1, &1),
-                coordinate_from_index(&col, &row)
-            ),
-            style,
-        );
     }
 
     umya_spreadsheet::writer::xlsx::write(&book, path)?;
@@ -666,4 +660,11 @@ fn sum_up(reason: &str) -> String {
         }
     }
     String::new()
+}
+
+fn center_wrap(style: &mut Style) {
+    let alignment = style.get_alignment_mut();
+    alignment.set_vertical(VerticalAlignmentValues::Center);
+    alignment.set_horizontal(HorizontalAlignmentValues::Center);
+    alignment.set_wrap_text(true);
 }
