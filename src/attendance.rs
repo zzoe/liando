@@ -289,7 +289,7 @@ impl Default for UserInput {
             statistics_start_row: 5,
             record_employee_id_col: 4,
             record_date_col: 7,
-            record_abnormal_reason_col: 14,
+            record_abnormal_reason_col: 13,
             record_start_row: 4,
             template_cfg: vec![(1, 7, 2), (4, 9, 2), (4, 9, 2)],
         }
