@@ -586,10 +586,11 @@ fn generate_report(path: impl AsRef<Path>, user_input: &UserInput, db: &Db) -> R
                         .get_cell_mut((date_col, r))
                         .set_value_string(format!("{}个人投入度", date_string));
 
-                    worksheet.get_cell_mut((date_col + 1, r)).set_value_string(format!(
+                    let style = worksheet.get_cell_mut((date_col + 1, r)).set_value_string(format!(
                         "{}考勤\n（正常/不正常（缺卡、补卡、虚拟打卡、非主责项目或城市打卡），不正常说明原因）",
                         date_string
-                    ));
+                    )).get_style_mut();
+                    center_wrap(style);
 
                     worksheet
                         .get_column_dimension_mut(&string_from_column_index(&(date_col + 1)))
