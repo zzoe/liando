@@ -582,9 +582,11 @@ fn generate_report(path: impl AsRef<Path>, user_input: &UserInput, db: &Db) -> R
             for r in template_cfg.2..max_row + 1 {
                 if r == template_cfg.2 {
                     // 写表头
-                    worksheet
+                    let style = worksheet
                         .get_cell_mut((date_col, r))
-                        .set_value_string(format!("{}个人投入度", date_string));
+                        .set_value_string(format!("{}个人投入度", date_string))
+                        .get_style_mut();
+                    center_wrap(style);
 
                     let style = worksheet.get_cell_mut((date_col + 1, r)).set_value_string(format!(
                         "{}考勤\n（正常/不正常（缺卡、补卡、虚拟打卡、非主责项目或城市打卡），不正常说明原因）",
@@ -668,4 +670,5 @@ fn center_wrap(style: &mut Style) {
     alignment.set_vertical(VerticalAlignmentValues::Center);
     alignment.set_horizontal(HorizontalAlignmentValues::Center);
     alignment.set_wrap_text(true);
+    style.get_font_mut().set_name("微软雅黑").set_size(9.0);
 }
